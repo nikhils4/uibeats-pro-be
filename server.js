@@ -104,11 +104,12 @@ app.use((req, res, next) => {
 // Port declaration
 const port = process.env.PORT || 3500;
 
-
 const auth = require("./routes/auth");
 app.use("/api/v1/auth", auth);
 const settings = require("./routes/settings");
 app.use("/api/v1/settings", settings);
+const public = require("./routes/public");
+app.use("/api/v1/public", public);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
