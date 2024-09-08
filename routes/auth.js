@@ -97,7 +97,6 @@ router.post("/signin", async (req, res) => {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
     });
 
     res.json({
@@ -151,30 +150,28 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
-// TODO
 router.post("/refresh-token", async (req, res) => {
   try {
-    // Extract the refresh token from the request cookies
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
       return res.status(401).json({ message: "Refresh token not provided" });
     }
-
-    // Verify the refresh token
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
-    // Find the user associated with the token
     const user = await User.findById(decoded.userId);
 
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
 
-    // Create and send new access token
-    const newAccessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const newAccessToken = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     res.json({
       message: "Token refreshed successfully",
@@ -195,24 +192,18 @@ router.post("/refresh-token", async (req, res) => {
   }
 });
 
-
 router.get("/status", authMiddleware, async (req, res) => {
   try {
-    // If the middleware passes, the user is authenticated
     res.status(200).json({
       message: "User is authenticated",
       user: {
         id: req.user._id,
-        email: req.user.email,
-        name: req.user.name,
-        isVerified: req.user.isVerified
-      }
+      },
     });
   } catch (error) {
     console.error("Auth status check error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 module.exports = router;

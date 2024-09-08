@@ -71,7 +71,8 @@ app.use(
 
 app.use((req, res, next) => {
   // Leaving raw for Stripe Webhook
-  if (req.originalUrl.startsWith("/webhook")) {
+  if (req.originalUrl.includes("/webhook")) {
+    console.log("Webhook request detected");
     next();
   } else {
     express.json({ limit: "10kb" })(req, res, next);
@@ -110,6 +111,10 @@ const settings = require("./routes/settings");
 app.use("/api/v1/settings", settings);
 const public = require("./routes/public");
 app.use("/api/v1/public", public);
+const payments = require("./routes/payments");
+app.use("/api/v1/payments", payments);
+const webhook = require("./routes/webhook");
+app.use("/api/v1/webhook", webhook);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

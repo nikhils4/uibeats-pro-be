@@ -25,7 +25,16 @@ const userSchema = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: false
-  },
+    },
+    payments: [
+      {
+        amount: Number,
+        currency: String,
+        productId: String,
+        date: Date,
+        sessionId: String
+      }
+    ]
 }, {
     timestamps: true
 });
