@@ -4,6 +4,7 @@ const { sendEmail } = require("../utils/email");
 const { generateStrongPassword } = require("../utils");
 const User = require("../models/User.schema");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { addEmailToMailJet } = require("../utils/email");
 
 router.post(
   "/stripe",
