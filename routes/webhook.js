@@ -54,6 +54,7 @@ router.post(
           const stripeCustomer = await stripe.customers.create({
             email: customerEmail,
           });
+          await addEmailToMailJet(customerEmail);
 
           user = new User({
             email: customerEmail,

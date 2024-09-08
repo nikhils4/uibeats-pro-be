@@ -22,7 +22,6 @@ module.exports.addEmailToMailJet = async (email) => {
 };
 
 module.exports.sendEmail = async (toEmail, subject, templateName, data) => {
-  const { tempPassword = "444444" } = data || {};
   try {
     const source = fs.readFileSync(
       __dirname + `/../email-templates/${templateName}.html`,

@@ -5,7 +5,7 @@ const User = require("../models/User.schema");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const authMiddleware = require("../middleware/auth");
 const { generateStrongPassword } = require("../utils/index");
-const { sendEmail } = require("../utils/email");
+const { sendEmail, addEmailToMailJet } = require("../utils/email");
 
 router.post("/signup", async (req, res) => {
   try {
@@ -22,6 +22,7 @@ router.post("/signup", async (req, res) => {
     const stripeCustomer = await stripe.customers.create({
       email: email,
     });
+    await addEmailToMailJet(email);
 
     user = new User({
       email,
