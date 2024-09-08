@@ -28,7 +28,7 @@ router.post(
 
       try {
         const customerEmail = session.customer_details.email;
-        console.log("Customer email:", customerEmail);
+        console.log("Customer email/ webhook:", customerEmail);
         let user = await User.findOne({ email: customerEmail });
         let message = "";
         if (user) {
