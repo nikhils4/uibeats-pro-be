@@ -113,6 +113,8 @@ const public = require("./routes/public");
 app.use("/api/v1/public", public);
 const payments = require("./routes/payments");
 app.use("/api/v1/payments", payments);
+const license = require("./routes/license");
+app.use("/api/v1/license", license);
 const webhook = require("./routes/webhook");
 app.use("/api/v1/webhook", webhook);
 
