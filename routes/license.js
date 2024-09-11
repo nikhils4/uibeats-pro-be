@@ -3,6 +3,7 @@ const router = express.Router();
 const License = require("../models/License.schema");
 const User = require("../models/User.schema");
 const authMiddleware = require("../middleware/auth");
+const { sendEmail } = require("../utils/email");
 
 router.get("/", authMiddleware, async (req, res) => {
   try {
@@ -127,6 +128,17 @@ router.post("/add-team-member", authMiddleware, async (req, res) => {
       await memberToAdd.save();
     }
 
+    const ownerUser = await User.findById(ownerId);
+    await sendEmail(
+      memberEmail,
+      "Welcome to the Team!",
+      "member-add",
+      {
+        inviter_email: ownerUser.email,
+        user_email: memberToAdd.email
+      }
+    );
+
     res
       .status(200)
       .json({
@@ -211,6 +223,10 @@ router.post("/remove-team-member", authMiddleware, async (req, res) => {
     );
     await memberToRemove.save();
 
+    await sendEmail(memberEmail, "Team Membership Update", "member-remove", {
+      license_owner_email: (await User.findById(license.owner)).email,
+    });
+
     res
       .status(200)
       .json({ message: "The team member has been removed successfully." });
@@ -224,5 +240,32 @@ router.post("/remove-team-member", authMiddleware, async (req, res) => {
       });
   }
 });
+
+// Check if user has any active license
+router.get("/check-active", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).populate("licenses");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found. Please try logging in again.",
+      });
+    }
+
+    const hasActiveLicense = user.licenses.length > 0;
+
+    res.status(200).json({
+      hasActiveLicense,
+      licenseCount: user.licenses.length,
+    });
+  } catch (error) {
+    console.error("Error checking active license:", error);
+    res.status(500).json({
+      message: "An error occurred while checking for active licenses. Please try again later.",
+    });
+  }
+});
+
 
 module.exports = router;
