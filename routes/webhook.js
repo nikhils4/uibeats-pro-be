@@ -3,8 +3,51 @@ const router = express.Router();
 const { sendEmail } = require("../utils/email");
 const { generateStrongPassword } = require("../utils");
 const User = require("../models/User.schema");
+const License = require("../models/License.schema");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { addEmailToMailJet } = require("../utils/email");
+
+async function handleLicenseAndUser(user, session) {
+  const productId = session.metadata.productId;
+  let licenseType;
+
+  if (productId === process.env.INDIVIDUAL_LICENSE_PID) {
+    licenseType = 'individual';
+  } else if (productId === process.env.TEAM_LICENSE_PID) {
+    licenseType = 'team';
+  } else {
+    console.error(`Unknown product ID: ${productId}`);
+    throw new Error('Invalid product ID');
+  }
+
+  const newLicense = new License({
+    type: licenseType,
+    owner: user._id,
+    maxTeamSize: licenseType === 'team' ? 5 : 1,
+    teamMembers: [user._id]
+  });
+
+  await newLicense.save();
+
+  const updatedUser = await User.findOneAndUpdate(
+    { "payments.sessionId": session.id },
+    { 
+      $set: { "payments.$.isPaid": true },
+      $push: { licenses: newLicense._id }
+    },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    console.log(`No user found with session ID: ${session.id}`);
+  } else {
+    console.log(
+      `Updated payment status and added license for user: ${updatedUser.email}`
+    );
+  }
+
+  return updatedUser;
+}
 
 router.post(
   "/stripe",
@@ -24,7 +67,7 @@ router.post(
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    if (event.type === "checkout.session.completed") {
+    if (event.type === "checkout.session.completed" && event.data.object.payment_status === "paid") {
       const session = event.data.object;
 
       try {
@@ -73,6 +116,7 @@ router.post(
             ],
           });
           await user.save();
+        
           await sendEmail(
             customerEmail,
             "Welcome to ui/beats Insider",
@@ -80,6 +124,8 @@ router.post(
             { tempPassword }
           );
         }
+
+        await handleLicenseAndUser(user, session);
 
         return res
           .status(200)

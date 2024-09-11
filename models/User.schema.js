@@ -18,28 +18,37 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true
   },
-  stripeCustomerId: {
-    type: String,
-    required: true,
-  },
-  isVerified: {
-    type: Boolean,
-    default: false
+    stripeCustomerId: {
+        type: String,
+        required: true,
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    licenses: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'License'
+        }
+    ],
     payments: [
       {
         amount: Number,
         currency: String,
         productId: String,
         date: Date,
-        sessionId: String
+        sessionId: String,
+        isPaid: {
+          type: Boolean,
+          default: false
+        }
       }
     ]
 }, {
     timestamps: true
 });
 
-// Hash password before saving
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
     
@@ -48,7 +57,6 @@ userSchema.pre('save', async function(next) {
     next();
 });
 
-// Method to check if password is correct
 userSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
