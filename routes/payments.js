@@ -17,6 +17,7 @@ router.post("/create-payment-link", async (req, res) => {
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
+      allow_promotion_codes: true,
       line_items: [
         {
           price: price.id,
@@ -88,7 +89,7 @@ router.post("/verify-payment", async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, 
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.json({
