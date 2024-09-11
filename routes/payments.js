@@ -6,6 +6,22 @@ const jwt = require("jsonwebtoken");
 
 router.post("/create-payment-link", async (req, res) => {
   try {
+    let userEmail;
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const user = await User.findById(decoded.userId);
+          if (user) {
+            userEmail = user.email;
+          }
+        } catch (error) {
+          console.error("Error decoding token:", error);
+        }
+      }
+    }
     const { productId } = req.body;
 
     if (!productId) {
@@ -30,6 +46,7 @@ router.post("/create-payment-link", async (req, res) => {
       metadata: {
         productId: productId,
       },
+      ...(userEmail && { customer_email: userEmail }),
     });
 
     res.json({ url: session.url });
