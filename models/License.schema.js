@@ -22,7 +22,7 @@ const LicenseSchema = new Schema(
     maxTeamSize: {
       type: Number,
       default: function () {
-        return this.type === "team" ? 5 : 1;
+        return this.type === "team" ? 11 : 1;
       },
     },
   },

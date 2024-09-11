@@ -23,7 +23,7 @@ async function handleLicenseAndUser(user, session) {
   const newLicense = new License({
     type: licenseType,
     owner: user._id,
-    maxTeamSize: licenseType === 'team' ? 5 : 1,
+    maxTeamSize: licenseType === 'team' ? 11 : 1,
     teamMembers: [user._id]
   });
 
